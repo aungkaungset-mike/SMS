@@ -15,6 +15,10 @@ return new class extends Migration
     {
         Schema::create('parents', function (Blueprint $table) {
             $table->id();
+            $table->unsignedMediumInteger('user_id');
+            $table->string('phone');
+            $table->enum('gender' ,['male', 'female', 'other']);
+            $table->string('address');
             $table->timestamps();
         });
     }
