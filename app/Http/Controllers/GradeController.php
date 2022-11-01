@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class ClassController extends Controller
+class GradeController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +13,7 @@ class ClassController extends Controller
      */
     public function index()
     {
-        //
+        return view('pages.grade.index');
     }
 
     /**
