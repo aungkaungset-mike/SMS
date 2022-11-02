@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Teacher;
+use App\Models\Grade;
 
 class GradeController extends Controller
 {
@@ -13,7 +15,9 @@ class GradeController extends Controller
      */
     public function index()
     {
-        return view('pages.grade.index');
+        $classes = Grade::all();
+
+        return view('pages.grade.index')->with('classes', $classes);
     }
 
     /**
@@ -23,7 +27,9 @@ class GradeController extends Controller
      */
     public function create()
     {
-        //
+        $teachers = Teacher::all();
+
+        return view('pages.grade.create')->with('teachers', $teachers);
     }
 
     /**
@@ -34,7 +40,21 @@ class GradeController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [ 'class_name' => 'required|string|max:255',
+                                    'class_code' => 'required|numeric',
+                                    'class_description' => 'required|string|max:255',  
+                                    'teacher_id'    => 'required|numeric',                    
+        ]);
+
+        $grade = new Grade();
+
+        $grade->class_name = $request->input('class_name');
+        $grade->class_code = $request->input('class_code');
+        $grade->teacher_id = $request->input('teacher_id');
+        $grade->class_description = $request->input('class_description');
+        $grade->save();
+
+        return redirect()->route('class.index');
     }
 
     /**

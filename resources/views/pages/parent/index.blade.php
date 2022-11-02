@@ -46,9 +46,9 @@
                              
                 @endforeach
         </div>
-        {{-- <div class="mt-8">
-            {{ $parents->links() }}
-        </div> --}}
+        <div class="mt-8">
+            {{-- {{ $parents->links() }} --}}
+        </div>
 
         @include('pages.modals.delete',['name' => 'parent'])
     </div>

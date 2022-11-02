@@ -60,11 +60,7 @@ class RoleController extends Controller
      */
     public function edit($id)
     {
-        $user = User::find($id);
-
-        $roles = Role::all();
-
-        return view('pages.roleassign.edit')->with('user',$user)->with('roles',$roles);
+        
     }
 
     /**

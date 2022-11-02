@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
+use App\Models\Teacher;
+use Illuminate\Support\Facades\Storage;
 
 class TeacherController extends Controller
 {
@@ -13,7 +16,9 @@ class TeacherController extends Controller
      */
     public function index()
     {
-        return view('pages.teacher.index');
+        $teachers = Teacher::all();
+
+        return view('pages.teacher.index')->with('teachers', $teachers);
     }
 
     /**
@@ -34,12 +39,47 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        // $request->validate(['name' => 'required'|'string'|'max:255',
-        //                     'email' => 'required'|'email'|'string'|'max:255',
-        //                     'password' => 'required'|'string'|'max:4',
+        $this->validate($request, [ 'name' => 'required|string|max:255',
+                                    'email' => 'required|email|string|max:255',
+                                    'password' => 'required|string|max:4',
+                                    'phone' => 'required|string',
+                                    'gender' => 'required|string',
+                                    'dateofbirth' => 'required|date',
+                                    'address' => 'required|string',                         
+    ]);
+       
+      
+        $fileName = $request->file('profile_picture')->getClientOriginalName();
 
-                
-        // ])
+        $ext = $request->file('profile_picture')->getClientOriginalExtension();
+
+        $fileName = pathinfo($fileName, PATHINFO_FILENAME);
+
+        $fileNameToStore = $fileName.'_'.time().'.'.$ext;   
+        
+        $path = $request->file('profile_picture')->storeAs('public/profile_pictures', $fileNameToStore);
+
+        
+        $user = new User();
+
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');
+        $user->password = bcrypt($request->input('password'));
+        $user->profile_picture = $fileNameToStore;
+      
+        $user->save();
+  
+
+         $user->teacher()->create([
+            'gender'            => $request->input('gender'),
+            'phone'             => $request->input('phone'),
+            'dateofbirth'       => $request->input('dateofbirth'),
+            'address'           => $request->input('address')
+        ]);
+
+        $user->assignRole('Teacher');
+
+        return redirect()->route('teacher.index');
     }
 
     /**
@@ -50,7 +90,7 @@ class TeacherController extends Controller
      */
     public function show($id)
     {
-        
+        //
     }
 
     /**
@@ -61,7 +101,8 @@ class TeacherController extends Controller
      */
     public function edit($id)
     {
-        return view('pages.teacher.edit');
+        $teacher = Teacher::find($id);
+        return view('pages.teacher.edit')->with('teacher', $teacher);
     }
 
     /**
@@ -73,7 +114,49 @@ class TeacherController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
+        $this->validate($request, [ 'name' => 'required|string|max:255',
+                                    'email' => 'required|email|string|max:255',
+                                    'phone' => 'required|string',
+                                    'gender' => 'required|string',
+                                    'address' => 'required|string',  
+    ]);
+    $teacher = Teacher::find($id);
+
+    $user = User::findOrFail($teacher->user_id);
+
+
+    if($request->hasfile('profile_picture'))
+    {
+        $fileNameWithExt = $request->file('profile_picture')->getClientOriginalName();
+
+         $ext = $request->file('profile_picture')->getClientOriginalExtension();
+
+         $fileName = pathinfo($fileNameWithExt, PATHINFO_FILENAME);
+
+         $fileNameToStore = $fileName.'_'.time().'.'.$ext;   
+         
+         $path = $request->file('profile_picture')->storeAs('public/profile_pictures', $fileNameToStore);
+
+         Storage::delete('public/profile_pictures'. $teacher->profile_picture);
+
+         $user->profile_picture = $fileNameToStore;
+    }  
+
+
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');  
+        $user->update();
+
+        $teacher->gender = $request->input('gender');
+        $teacher->phone = $request->input('phone');
+        $teacher->address = $request->input('address');
+        $teacher->update();
+
+
+        
+        return redirect()->route('teacher.index');
+
     }
 
     /**
@@ -84,6 +167,17 @@ class TeacherController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $teacher = Teacher::find($id);
+        $user = User::findOrFail($teacher->user_id);
+        $user->removeRole('Teacher');    
+        if($teacher->profile_picture != 'profile.png')
+        {
+           Storage::delete('public/profile_pictures'. $teacher->profile_picture);
+        }
+         
+        $teacher->delete();
+        $user->delete();
+
+        return back(); 
     }
 }

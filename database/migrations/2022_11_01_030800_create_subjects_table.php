@@ -15,6 +15,10 @@ return new class extends Migration
     {
         Schema::create('subjects', function (Blueprint $table) {
             $table->id();
+            $table->string('subject_name');
+            $table->unsignedBigInteger('subject_code');
+            $table->unsignedBigInteger('teacher_id');
+            $table->text('subject_description');
             $table->timestamps();
         });
     }

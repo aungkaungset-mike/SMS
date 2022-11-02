@@ -15,6 +15,10 @@ return new class extends Migration
     {
         Schema::create('grades', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('teacher_id');
+            $table->unsignedBigInteger('class_code');
+            $table->string('class_name');
+            $table->string('class_description');
             $table->timestamps();
         });
     }
