@@ -10,7 +10,10 @@ class Parents extends Model
     use HasFactory;
 
     protected $fillable = [
-        
+        'user_id',
+        'gender',
+        'phone',
+        'address',
     ];
 
     public function user()

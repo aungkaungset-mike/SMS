@@ -34,7 +34,12 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // $request->validate(['name' => 'required'|'string'|'max:255',
+        //                     'email' => 'required'|'email'|'string'|'max:255',
+        //                     'password' => 'required'|'string'|'max:4',
+
+                
+        // ])
     }
 
     /**
