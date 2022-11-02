@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
@@ -13,7 +15,9 @@ class RoleController extends Controller
      */
     public function index()
     {
-        return view('pages.role.index');
+        $users = User::all();
+
+        return view('pages.roleassign.index')->with('users',$users);
     }
 
     /**
@@ -56,7 +60,11 @@ class RoleController extends Controller
      */
     public function edit($id)
     {
-        //
+        $user = User::find($id);
+
+        $roles = Role::all();
+
+        return view('pages.roleassign.edit')->with('user',$user)->with('roles',$roles);
     }
 
     /**
@@ -68,7 +76,11 @@ class RoleController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        $user->syncRoles($request->selectedrole);
+
+        return redirect()->route('role.index');
     }
 
     /**
