@@ -23,14 +23,14 @@
                 <p class="text-red-500 text-xs italic">{{ $message }}</p>
             @enderror
         </div>
-        <div class="mb-6">
+        {{-- <div class="mb-6">
             <label class="block text-gray-500 font-bold">
                 <input class="mr-2 leading-tight" type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
                 <span class="text-sm">
                     Remember Me
                 </span>
             </label>
-        </div>
+        </div> --}}
         <div class="flex items-center justify-between">
             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
                 Sign In

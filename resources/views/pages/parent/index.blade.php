@@ -27,11 +27,11 @@
                     <div class="w-3/12 px-4 py-3 text-sm font-semibold text-gray-600 tracking-tight">{{$parent->user->name}}</div>
                     <div class="w-3/12 px-4 py-3 text-sm font-semibold text-gray-600 tracking-tight">{{$parent->user->email}}</div>
                     <div class="w-2/12 px-4 py-3 text-sm font-semibold text-gray-600 tracking-tight">
-                       
-                            <span class="bg-gray-200 text-xs font-normal px-2 py-px border rounded-full inline-flex my-px">
-                               
-                            </span>
-                      
+                        @foreach ($parent->children as $children)
+                        <span class="bg-gray-200 text-xs font-normal px-2 py-px border rounded-full inline-flex my-px">
+                            {{ $children->user->name }}
+                        </span>
+                         @endforeach
                     </div>
                     <div class="w-2/12 px-4 py-3 text-sm font-semibold text-gray-600 tracking-tight">{{$parent->phone}}</div>
                     <div class="w-2/12 flex items-center justify-end px-3">
@@ -47,7 +47,7 @@
                 @endforeach
         </div>
         <div class="mt-8">
-            {{-- {{ $parents->links() }} --}}
+            {{ $parents->links() }}
         </div>
 
         @include('pages.modals.delete',['name' => 'parent'])

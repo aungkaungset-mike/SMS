@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Grade;
+use App\Models\Parents;
+use App\Models\User;
+use App\Models\Student;
+use Illuminate\Support\Facades\Storage;
 
 class StudentController extends Controller
 {
@@ -13,7 +18,9 @@ class StudentController extends Controller
      */
     public function index()
     {
-        return view('pages.student.index');
+        $students = Student::paginate(10);
+
+        return view('pages.student.index')->with('students', $students);
     }
 
     /**
@@ -23,7 +30,10 @@ class StudentController extends Controller
      */
     public function create()
     {
-        return view('pages.student.create');
+        $classes = Grade::all();
+        $parents = Parents::all();
+
+        return view('pages.student.create')->with('classes', $classes)->with('parents', $parents);
     }
 
     /**
@@ -34,7 +44,51 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request,[ 'name'              => 'required|string|max:255',
+                                   'email'             => 'required|string|email|max:255|unique:users',
+                                   'password'          => 'required|string|min:4',
+                                   'parent_id'         => 'required|numeric',
+                                   'class_id'          => 'required|numeric',
+                                   'roll_number'       => 'required|numeric',           
+                                   'gender'            => 'required|string',
+                                   'phone'             => 'required|string|max:255',
+                                   'dateofbirth'       => 'required|date',
+                                   'address'           => 'required|string|max:255',
+        ]);
+
+        $fileName = $request->file('profile_picture')->getClientOriginalName();
+
+        $ext = $request->file('profile_picture')->getClientOriginalExtension();
+
+        $fileName = pathinfo($fileName, PATHINFO_FILENAME);
+
+        $fileNameToStore = $fileName.'_'.time().'.'.$ext;   
+        
+        $path = $request->file('profile_picture')->storeAs('public/profile_pictures', $fileNameToStore);
+
+        
+        $user = new User();
+
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');
+        $user->password = bcrypt($request->input('password'));
+        $user->profile_picture = $fileNameToStore;
+      
+        $user->save();
+
+        $user->student()->create([
+            'parent_id'         => $request->input('parent_id'),
+            'class_id'          => $request->input('class_id'),
+            'roll_number'       => $request->input('roll_number'),
+            'gender'            => $request->input('gender'),
+            'phone'             => $request->input('phone'),
+            'dateofbirth'       => $request->input('dateofbirth'),
+            'address'           => $request->input('address')
+        ]);
+
+        $user->assignRole('Student');
+
+        return redirect()->route('student.index');
     }
 
     /**
@@ -43,9 +97,11 @@ class StudentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Student $student)
     {
-        //
+        $class = Grade::with('subjects')->where('id', $student->class_id)->first();
+
+        return view('pages.student.show')->with('class', $class)->with('student', $student);
     }
 
     /**
@@ -56,7 +112,11 @@ class StudentController extends Controller
      */
     public function edit($id)
     {
-        //
+        $student = Student::find($id);
+        $classes = Grade::all();
+        $parents = Parents::all();
+
+        return view('pages.student.edit')->with('classes', $classes)->with('parents', $parents)->with('student', $student);
     }
 
     /**
@@ -68,9 +128,56 @@ class StudentController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
-    }
+        $this->validate($request,[ 'name'              => 'required|string|max:255',
+                                   'email'             => 'required|string|email|max:255|unique:users',
+                                   'parent_id'         => 'required|numeric',
+                                   'class_id'          => 'required|numeric',
+                                   'roll_number'       => 'required|numeric',           
+                                   'gender'            => 'required|string',
+                                   'phone'             => 'required|string|max:255',
+                                   'dateofbirth'       => 'required|date',
+                                   'address'           => 'required|string|max:255',
+        ]);
+    
 
+    $student = Student::find($id);
+
+    $user = User::findOrFail($student->user_id);
+
+
+    if($request->hasfile('profile_picture'))
+    {
+        $fileNameWithExt = $request->file('profile_picture')->getClientOriginalName();
+
+         $ext = $request->file('profile_picture')->getClientOriginalExtension();
+
+         $fileName = pathinfo($fileNameWithExt, PATHINFO_FILENAME);
+
+         $fileNameToStore = $fileName.'_'.time().'.'.$ext;   
+         
+         $path = $request->file('profile_picture')->storeAs('public/profile_pictures', $fileNameToStore);
+
+         Storage::delete('public/profile_pictures'. $student->profile_picture);
+
+         $user->profile_picture = $fileNameToStore;
+    }  
+
+
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');  
+        $user->update();
+
+        $student->parent_id = $request->input('parent_id');
+        $student->class_id = $request->input('class_id');
+        $student->roll_number = $request->input('roll_number');
+        $student->dateofbirth = $request->input('dateofbirth');
+        $student->gender = $request->input('gender');
+        $student->phone = $request->input('phone');
+        $student->address = $request->input('address');
+        $student->update();
+
+        return redirect()->route('student.index');  
+    }
     /**
      * Remove the specified resource from storage.
      *
@@ -79,6 +186,17 @@ class StudentController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $student = Student::find($id);
+        $user = User::findOrFail($student->user_id);
+        $user->removeRole('Student');    
+        if($student->profile_picture != 'profile.png')
+        {
+           Storage::delete('public/profile_pictures'. $student->profile_picture);
+        }
+         
+        $student->delete();
+        $user->delete();
+
+        return back(); 
     }
 }

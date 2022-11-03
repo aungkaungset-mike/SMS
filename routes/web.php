@@ -8,7 +8,6 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\RolePermissionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,4 +33,7 @@ Route::resource('/student', StudentController::class);
 Route::resource('/class', GradeController::class);
 Route::resource('/subject', SubjectController::class);
 Route::resource('/role', RoleController::class);
+
+Route::get('assign-subject-to-class/{id}', [GradeController::class, 'assignSubject'])->name('class.assign.subject');
+Route::post('assign-subject-to-class/{id}', [GradeController::class, 'storeAssignedSubject'])->name('store.class.assign.subject');
 

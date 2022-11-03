@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Teacher;
 use App\Models\Grade;
+use App\Models\Student;
+use App\Models\Subject;
 
 class GradeController extends Controller
 {
@@ -15,7 +17,7 @@ class GradeController extends Controller
      */
     public function index()
     {
-        $classes = Grade::all();
+        $classes = Grade::withCount('students')->latest()->paginate(10);
 
         return view('pages.grade.index')->with('classes', $classes);
     }
@@ -65,7 +67,7 @@ class GradeController extends Controller
      */
     public function show($id)
     {
-        //
+       
     }
 
     /**
@@ -76,7 +78,10 @@ class GradeController extends Controller
      */
     public function edit($id)
     {
-        //
+        $teachers = Teacher::all();
+        $class = Grade::find($id);
+
+        return view('pages.grade.edit')->with('teachers', $teachers)->with('class', $class);
     }
 
     /**
@@ -88,7 +93,21 @@ class GradeController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $this->validate($request, [ 'class_name' => 'required|string|max:255',
+                                    'class_code' => 'required|numeric',
+                                    'class_description' => 'required|string|max:255',  
+                                    'teacher_id'    => 'required|numeric',                    
+        ]);  
+        
+        $grade = Grade::find($id);
+
+        $grade->class_name = $request->input('class_name');
+        $grade->class_code = $request->input('class_code');
+        $grade->teacher_id = $request->input('teacher_id');
+        $grade->class_description = $request->input('class_description');
+        $grade->update();
+
+        return redirect()->route('class.index');
     }
 
     /**
@@ -99,6 +118,33 @@ class GradeController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $class = Grade::find($id);
+        $class->subjects()->detach();
+        $class->delete();
+
+        return back();
+    }
+
+    public function assignSubject($classid)
+    {
+        $subjects   = Subject::latest()->get();
+        $assigned   = Grade::with(['subjects','students'])->findOrFail($classid);
+
+        return view('pages.grade.assign-subject')->with('classid', $classid)->with('subjects',$subjects)->with('assigned', $assigned);
+    }
+
+    /*
+     * Add Assigned Subjects to Grade 
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function storeAssignedSubject(Request $request, $id)
+    {
+        $class = Grade::findOrFail($id);
+
+        $class->subjects()->sync($request->selectedsubjects);
+
+        return redirect()->route('class.index');
     }
 }

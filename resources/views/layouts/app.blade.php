@@ -17,9 +17,22 @@
         @include('layouts.navbar')
         
         <div class="main flex flex-wrap justify-end mt-16">
-            
-            @include('layouts.sidebar')
 
+            @role('Admin')
+            @include('layouts.admin-sidebar')
+            @endrole
+
+            @role('Teacher')
+            @include('layouts.teacher-sidebar')
+            @endrole
+
+            @role('Parent')
+            @include('layouts.parent-sidebar')
+            @endrole
+
+            @role('Student')
+            @include('layouts.student-sidebar')
+            @endrole
             <div class="content w-full sm:w-5/6">
                 <div class="container mx-auto p-4 sm:p-6">
 

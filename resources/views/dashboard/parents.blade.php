@@ -41,12 +41,11 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="w-1/2 text-sm text-right">Address :</div>
-                        <div class="w-1/2 text-sm text-left ml-2">{{ $children->current_address }}</div>
+                        <div class="w-1/2 text-sm text-left ml-2">{{ $children->address }}</div>
                     </div>
 
                     <div class="mt-6">
-                        <a href="{{ route('attendance.show',$children->id) }}" class="bg-gray-100 inline-block mb-4 text-xs text-gray-600 uppercase font-semibold px-4 py-2 border border-gray-400 rounded">Attendence</a>
-                        <a href="{{ route('teacher.attendance.create',$children->id) }}" class="bg-gray-100 inline-block mb-4 text-xs text-gray-600 uppercase font-semibold px-4 py-2 border border-gray-400 rounded">Fees</a>
+                        <a href="{{route('student.show', $children->id)}}" class="bg-gray-100 inline-block mb-4 text-xs text-gray-600 uppercase font-semibold px-4 py-2 border border-gray-400 rounded">More</a>                   
                     </div>
                 </div>
             </div>

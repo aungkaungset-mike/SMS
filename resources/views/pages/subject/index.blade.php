@@ -39,7 +39,7 @@
             @endforeach
         </div>
         <div class="mt-8">
-            {{-- {{ $subjects->links() }} --}}
+            {{ $subjects->links() }}
         </div>
         @include('pages.modals.delete',['name' => 'subject'])
     </div>

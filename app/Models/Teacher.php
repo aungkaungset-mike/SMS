@@ -19,7 +19,7 @@ class Teacher extends Model
 
     public function user()
     {
-         return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function subjects()
@@ -27,14 +27,14 @@ class Teacher extends Model
         return $this->hasMany(Subject::class);
     }
 
-    public function students() 
-    {
-        return $this->classes()->withCount('students');
-    }
-
     public function classes()
     {
         return $this->hasMany(Grade::class);
+    }
+
+    public function students() 
+    {
+        return $this->classes()->withCount('students');
     }
 
 }

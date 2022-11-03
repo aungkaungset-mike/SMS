@@ -9,14 +9,15 @@ use Illuminate\Support\Facades\Storage;
 
 class ParentController extends Controller
 {
+    
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        $parents = Parents::all();
+    { 
+        $parents = Parents::paginate(10);
 
         return view('pages.parent.index')->with('parents', $parents);
     }
