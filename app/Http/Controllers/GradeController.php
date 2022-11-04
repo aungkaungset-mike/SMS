@@ -155,8 +155,8 @@ class GradeController extends Controller
     {
         if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
         {
-            $subjects   = Subject::latest()->get();
-            $assigned   = Grade::with(['subjects','students'])->findOrFail($classid);
+            $subjects   = Subject::all();
+            $assigned   = Grade::with(['subjects','students'])->find($classid);
     
             return view('pages.grade.assign-subject')->with('classid', $classid)->with('subjects',$subjects)->with('assigned', $assigned);
         }
@@ -174,7 +174,7 @@ class GradeController extends Controller
      */
     public function storeAssignedSubject(Request $request, $id)
     {
-        $class = Grade::findOrFail($id);
+        $class = Grade::find($id);
 
         $class->subjects()->sync($request->selectedsubjects);
 
