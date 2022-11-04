@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Subject;
 use App\Models\Teacher;
+use Auth;
 
 class SubjectController extends Controller
 {
@@ -27,9 +28,18 @@ class SubjectController extends Controller
      */
     public function create()
     {
-        $teachers = Teacher::all();
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+           
+             $teachers = Teacher::all();
 
-        return view('pages.subject.create')->with('teachers',$teachers);
+             return view('pages.subject.create')->with('teachers',$teachers);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+
     }
 
     /**
@@ -54,7 +64,7 @@ class SubjectController extends Controller
         $subject->subject_description = $request->input('subject_description');
         $subject->save();
 
-        return redirect()->route('subject.index');
+        return redirect()->route('subject.index')->with('status', 'Added');
     }
 
     /**
@@ -76,10 +86,19 @@ class SubjectController extends Controller
      */
     public function edit($id)
     {
-        $teachers = Teacher::all();
-        $subject = Subject::find($id);
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+           
+             $teachers = Teacher::all();
+             $subject = Subject::find($id);
 
-        return view('pages.subject.edit')->with('teachers', $teachers)->with('subject', $subject);
+             return view('pages.subject.edit')->with('teachers', $teachers)->with('subject', $subject);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 
     /**
@@ -105,7 +124,7 @@ class SubjectController extends Controller
         $subject->subject_description = $request->input('subject_description');
         $subject->update();
 
-        return redirect()->route('subject.index');
+        return redirect()->route('subject.index')->with('status', 'Updated');
     }
 
     /**
@@ -116,10 +135,19 @@ class SubjectController extends Controller
      */
     public function destroy($id)
     {
-        $subject = Subject::find($id);
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+           
+              $subject = Subject::find($id);
    
-        $subject->delete();
+              $subject->delete();
 
-        return back();
+              return back()->with('status', 'Deleted'); 
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 }

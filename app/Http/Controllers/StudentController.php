@@ -8,6 +8,7 @@ use App\Models\Parents;
 use App\Models\User;
 use App\Models\Student;
 use Illuminate\Support\Facades\Storage;
+use Auth;
 
 class StudentController extends Controller
 {
@@ -18,6 +19,7 @@ class StudentController extends Controller
      */
     public function index()
     {
+        
         $students = Student::paginate(10);
 
         return view('pages.student.index')->with('students', $students);
@@ -30,10 +32,18 @@ class StudentController extends Controller
      */
     public function create()
     {
-        $classes = Grade::all();
-        $parents = Parents::all();
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            $classes = Grade::all();
+            $parents = Parents::all();
+    
+            return view('pages.student.create')->with('classes', $classes)->with('parents', $parents);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
 
-        return view('pages.student.create')->with('classes', $classes)->with('parents', $parents);
     }
 
     /**
@@ -88,7 +98,7 @@ class StudentController extends Controller
 
         $user->assignRole('Student');
 
-        return redirect()->route('student.index');
+        return redirect()->route('student.index')->with('status', 'Added');
     }
 
     /**
@@ -99,9 +109,17 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        $class = Grade::with('subjects')->where('id', $student->class_id)->first();
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            $class = Grade::with('subjects')->where('id', $student->class_id)->first();
 
-        return view('pages.student.show')->with('class', $class)->with('student', $student);
+           return view('pages.student.show')->with('class', $class)->with('student', $student);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 
     /**
@@ -112,11 +130,19 @@ class StudentController extends Controller
      */
     public function edit($id)
     {
-        $student = Student::find($id);
-        $classes = Grade::all();
-        $parents = Parents::all();
-
-        return view('pages.student.edit')->with('classes', $classes)->with('parents', $parents)->with('student', $student);
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            $student = Student::find($id);
+            $classes = Grade::all();
+            $parents = Parents::all();
+    
+            return view('pages.student.edit')->with('classes', $classes)->with('parents', $parents)->with('student', $student);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 
     /**
@@ -129,7 +155,7 @@ class StudentController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request,[ 'name'              => 'required|string|max:255',
-                                   'email'             => 'required|string|email|max:255|unique:users',
+                                   'email'             => 'required|string|email|max:255',
                                    'parent_id'         => 'required|numeric',
                                    'class_id'          => 'required|numeric',
                                    'roll_number'       => 'required|numeric',           
@@ -176,7 +202,7 @@ class StudentController extends Controller
         $student->address = $request->input('address');
         $student->update();
 
-        return redirect()->route('student.index');  
+        return redirect()->route('student.index')->with('status', 'Updated');  
     }
     /**
      * Remove the specified resource from storage.
@@ -186,17 +212,25 @@ class StudentController extends Controller
      */
     public function destroy($id)
     {
-        $student = Student::find($id);
-        $user = User::findOrFail($student->user_id);
-        $user->removeRole('Student');    
-        if($student->profile_picture != 'profile.png')
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
         {
-           Storage::delete('public/profile_pictures'. $student->profile_picture);
+            $student = Student::find($id);
+            $user = User::findOrFail($student->user_id);
+            $user->removeRole('Student');    
+            if($student->profile_picture != 'profile.png')
+            {
+               Storage::delete('public/profile_pictures'. $student->profile_picture);
+            }
+             
+            $student->delete();
+            $user->delete();
+    
+            return back()->with('status', 'Deleted'); 
         }
-         
-        $student->delete();
-        $user->delete();
-
-        return back(); 
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 }

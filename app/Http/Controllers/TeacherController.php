@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Teacher;
 use Illuminate\Support\Facades\Storage;
+use Auth;
 
 class TeacherController extends Controller
 {
@@ -28,7 +29,15 @@ class TeacherController extends Controller
      */
     public function create()
     {
-        return view('pages.teacher.create');
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            return view('pages.teacher.create');
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+        
     }
 
     /**
@@ -79,7 +88,7 @@ class TeacherController extends Controller
 
         $user->assignRole('Teacher');
 
-        return redirect()->route('teacher.index');
+        return redirect()->route('teacher.index')->with('status', 'Added');
     }
 
     /**
@@ -101,8 +110,16 @@ class TeacherController extends Controller
      */
     public function edit($id)
     {
-        $teacher = Teacher::find($id);
-        return view('pages.teacher.edit')->with('teacher', $teacher);
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            $teacher = Teacher::find($id);
+            return view('pages.teacher.edit')->with('teacher', $teacher);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 
     /**
@@ -155,7 +172,7 @@ class TeacherController extends Controller
 
 
         
-        return redirect()->route('teacher.index');
+        return redirect()->route('teacher.index')->with('status', 'Updated');
 
     }
 
@@ -167,17 +184,26 @@ class TeacherController extends Controller
      */
     public function destroy($id)
     {
-        $teacher = Teacher::find($id);
-        $user = User::findOrFail($teacher->user_id);
-        $user->removeRole('Teacher');    
-        if($teacher->profile_picture != 'profile.png')
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
         {
-           Storage::delete('public/profile_pictures'. $teacher->profile_picture);
-        }
+            
+             $teacher = Teacher::find($id);
+             $user = User::findOrFail($teacher->user_id);
+             $user->removeRole('Teacher');    
+             if($teacher->profile_picture != 'profile.png')
+             {
+                Storage::delete('public/profile_pictures'. $teacher->profile_picture);
+             }
          
-        $teacher->delete();
-        $user->delete();
+             $teacher->delete();
+             $user->delete();
 
-        return back(); 
+             return back()->with('status', 'Deleted');  
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+      
     }
 }

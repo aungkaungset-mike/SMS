@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+@if (Session::has('status'))
+<div class="alert alert-success" style="background: #2B6CB0; color:white; text-align: center; padding: 1%; font-size:15px">
+  {{Session::get('status')}}
+</div>
+@endif
     <div class="roles-permissions">
         <div class="flex items-center justify-between mb-6">
             <div>

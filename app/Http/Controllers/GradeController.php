@@ -7,6 +7,7 @@ use App\Models\Teacher;
 use App\Models\Grade;
 use App\Models\Student;
 use App\Models\Subject;
+use Auth;
 
 class GradeController extends Controller
 {
@@ -29,9 +30,17 @@ class GradeController extends Controller
      */
     public function create()
     {
-        $teachers = Teacher::all();
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            $teachers = Teacher::all();
 
-        return view('pages.grade.create')->with('teachers', $teachers);
+             return view('pages.grade.create')->with('teachers', $teachers);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 
     /**
@@ -56,7 +65,7 @@ class GradeController extends Controller
         $grade->class_description = $request->input('class_description');
         $grade->save();
 
-        return redirect()->route('class.index');
+        return redirect()->route('class.index')->with('status', 'Added');
     }
 
     /**
@@ -78,10 +87,18 @@ class GradeController extends Controller
      */
     public function edit($id)
     {
-        $teachers = Teacher::all();
-        $class = Grade::find($id);
-
-        return view('pages.grade.edit')->with('teachers', $teachers)->with('class', $class);
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            $teachers = Teacher::all();
+            $class = Grade::find($id);
+    
+            return view('pages.grade.edit')->with('teachers', $teachers)->with('class', $class);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 
     /**
@@ -107,7 +124,7 @@ class GradeController extends Controller
         $grade->class_description = $request->input('class_description');
         $grade->update();
 
-        return redirect()->route('class.index');
+        return redirect()->route('class.index')->with('status', 'Updated');
     }
 
     /**
@@ -118,19 +135,35 @@ class GradeController extends Controller
      */
     public function destroy($id)
     {
-        $class = Grade::find($id);
-        $class->subjects()->detach();
-        $class->delete();
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+             $class = Grade::find($id);
+             $class->subjects()->detach();
+             $class->delete();
 
-        return back();
+             return back()->with('status', 'Deleted');
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
+       
     }
 
     public function assignSubject($classid)
     {
-        $subjects   = Subject::latest()->get();
-        $assigned   = Grade::with(['subjects','students'])->findOrFail($classid);
-
-        return view('pages.grade.assign-subject')->with('classid', $classid)->with('subjects',$subjects)->with('assigned', $assigned);
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            $subjects   = Subject::latest()->get();
+            $assigned   = Grade::with(['subjects','students'])->findOrFail($classid);
+    
+            return view('pages.grade.assign-subject')->with('classid', $classid)->with('subjects',$subjects)->with('assigned', $assigned);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
     }
 
     /*
@@ -145,6 +178,6 @@ class GradeController extends Controller
 
         $class->subjects()->sync($request->selectedsubjects);
 
-        return redirect()->route('class.index');
+        return redirect()->route('class.index')->with('status', 'Assigned Subject');
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Parents;
 use Illuminate\Support\Facades\Storage;
+use Auth;
 
 class ParentController extends Controller
 {
@@ -29,7 +30,15 @@ class ParentController extends Controller
      */
     public function create()
     {
-        return view('pages.parent.create');
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            return view('pages.parent.create');
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 
     /**
@@ -41,7 +50,7 @@ class ParentController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [ 'name' => 'required|string|max:255',
-                                    'email' => 'required|email|string|max:255',
+                                    'email' => 'required|email|string|max:255|unique:users',
                                     'password' => 'required|string|max:4',
                                     'phone' => 'required|string',
                                     'gender' => 'required|string',
@@ -78,7 +87,7 @@ class ParentController extends Controller
 
         $user->assignRole('Parent');
 
-        return redirect()->route('parent.index');
+        return redirect()->route('parent.index')->with('status', 'Added');
     }
 
     /**
@@ -100,8 +109,16 @@ class ParentController extends Controller
      */
     public function edit($id)
     {
-        $parent = Parents::find($id);
-        return view('pages.parent.edit')->with('parent', $parent);
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
+        {
+            $parent = Parents::find($id);
+            return view('pages.parent.edit')->with('parent', $parent);
+        }
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 
     /**
@@ -113,6 +130,7 @@ class ParentController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $parent = Parents::find($id);
 
         $this->validate($request, [ 'name' => 'required|string|max:255',
                                     'email' => 'required|email|string|max:255',
@@ -120,7 +138,7 @@ class ParentController extends Controller
                                     'gender' => 'required|string',
                                     'address' => 'required|string',  
     ]);
-    $parent = Parents::find($id);
+    
 
     $user = User::findOrFail($parent->user_id);
 
@@ -154,7 +172,7 @@ class ParentController extends Controller
 
 
         
-        return redirect()->route('parent.index');
+        return redirect()->route('parent.index')->with('status', 'Updated');
 
     }
 
@@ -166,17 +184,25 @@ class ParentController extends Controller
      */
     public function destroy($id)
     {
-        $parent = Parents::find($id);
-        $user = User::findOrFail($parent->user_id);
-        $user->removeRole('Parent');    
-        if($parent->profile_picture != 'profile.png')
+        if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Teacher'))
         {
-           Storage::delete('public/profile_pictures'. $parent->profile_picture);
+            $parent = Parents::find($id);
+            $user = User::findOrFail($parent->user_id);
+            $user->removeRole('Parent');    
+            if($parent->profile_picture != 'profile.png')
+            {
+               Storage::delete('public/profile_pictures'. $parent->profile_picture);
+            }
+             
+            $parent->delete();
+            $user->delete();
+    
+            return back()->with('status', 'Deleted'); 
         }
-         
-        $parent->delete();
-        $user->delete();
-
-        return back(); 
+        else
+        {
+            return back()->with('status', 'No Access');
+        }
+       
     }
 }
