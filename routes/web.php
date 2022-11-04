@@ -26,14 +26,18 @@ Route::get('/', function () {
     
 Auth::routes();
 
-Route::get('/home', [HomeController::class, 'index'])->name('home');
-Route::resource('/teacher', TeacherController::class);
-Route::resource('/parent', ParentController::class);
-Route::resource('/student', StudentController::class);
-Route::resource('/class', GradeController::class);
-Route::resource('/subject', SubjectController::class);
-Route::resource('/role', RoleController::class);
+Route::group(['middleware' => ['role:Admin|Teacher|Parent|Student']], function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::resource('/teacher', TeacherController::class);
+    Route::resource('/parent', ParentController::class);
+    Route::resource('/student', StudentController::class);
+    Route::resource('/class', GradeController::class);
+    Route::resource('/subject', SubjectController::class);
+    Route::resource('/role', RoleController::class);
 
-Route::get('assign-subject-to-class/{id}', [GradeController::class, 'assignSubject'])->name('class.assign.subject');
-Route::post('assign-subject-to-class/{id}', [GradeController::class, 'storeAssignedSubject'])->name('store.class.assign.subject');
+    Route::get('assign-subject-to-class/{id}', [GradeController::class, 'assignSubject'])->name('class.assign.subject');
+    Route::post('assign-subject-to-class/{id}', [GradeController::class, 'storeAssignedSubject'])->name('store.class.assign.subject');
+});
+
+
 

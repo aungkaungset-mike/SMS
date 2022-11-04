@@ -33,6 +33,12 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
+
+    public function __construct()
+    {
+        $this->middleware(['role:Admin|Teacher|Parent|Student']);
+    }
+
     public function index()
     {
         $user = Auth::user();
